@@ -1,0 +1,30 @@
+numbers = [10,20,4,45,99,99]
+largest = second_largest = float('-inf')
+
+for number in numbers:
+    if number > largest:
+        second_largest = largest
+        largest = number
+    elif largest > number > second_largest:
+        second_largest = number
+
+print(f"Largest: {largest}")
+print(f"Second Largest: {second_largest}")
+
+
+
+second_largest = None
+for i in range(len(numbers)):
+    for j in range (len(numbers)-i-1):
+        if  numbers[j] > numbers[j+1]:
+            numbers[j],numbers[j+1] = numbers[j+1], numbers[j]
+print(numbers)
+largest = numbers[-1]
+for i in range(len(numbers) -2 , -1 , -1):
+    if numbers[i] !=  largest:
+        second_largest = numbers[i]
+        break
+
+
+#second_largest = numbers[-2]
+print(f"Second Largest: {second_largest}")
