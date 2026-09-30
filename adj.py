@@ -21,7 +21,6 @@ print(result)
 #     else:
 #         i +=1
 
-01
 # Wrong apporach
 # for i in range(len(s)):
 #     print(len(s))

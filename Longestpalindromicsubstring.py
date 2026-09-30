@@ -1,6 +1,5 @@
 class Solution:
      def longestPalindrome(self, s: str) -> str:
-          result = ""
           for i in range(len(s)):
                for j in range(i,len(s)):
                     substring = s[i:j+1]
