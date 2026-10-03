@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground - Login Authentication</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --border: #334155;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); }
+        .badge { display: inline-block; background: rgba(56, 189, 248, 0.1); color: var(--primary); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; margin-bottom: 12px; }
+        h1 { font-size: 22px; margin-bottom: 8px; }
+        p.subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+        input[type="text"], input[type="password"] {
+            width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; transition: border 0.2s;
+        }
+        input:focus { border-color: var(--primary); }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+        .checkbox-group input { accent-color: var(--primary); cursor: pointer; }
+        button.btn {
+            width: 100%; background: var(--primary); color: #0f172a; font-weight: 600; padding: 12px; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; transition: background 0.2s;
+        }
+        button.btn:hover { background: var(--primary-hover); }
+        #statusMessage { margin-top: 20px; padding: 12px; border-radius: 6px; font-size: 14px; display: none; text-align: center; }
+        #statusMessage.success { background: rgba(34, 197, 94, 0.15); border: 1px solid var(--success); color: var(--success); display: block; }
+        #statusMessage.error { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--error); color: var(--error); display: block; }
+        .hint-box { margin-top: 24px; padding: 12px; background: rgba(148, 163, 184, 0.05); border: 1px dashed var(--border); border-radius: 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+        .hint-box code { color: var(--primary); font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <span class="badge">Offline Mock Target</span>
+        <h1>Login Authentication</h1>
+        <p class="subtitle">Practice form filling, accessible locators, and assertions.</p>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" data-testid="username-input" required />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" data-testid="password-input" required />
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="remember" name="remember" />
+                <label for="remember" style="margin-bottom:0; cursor:pointer;">Remember my session</label>
+            </div>
+
+            <button type="submit" class="btn" id="signInBtn">Sign In</button>
+        </form>
+
+        <div id="statusMessage" role="alert"></div>
+
+        <div class="hint-box">
+            💡 <strong>Test Credentials:</strong><br>
+            Username: <code>admin</code> | Password: <code>password123</code>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById("username").value.trim();
+            const p = document.getElementById("password").value.trim();
+            const status = document.getElementById("statusMessage");
+
+            if (u === "admin" && p === "password123") {
+                status.className = "success";
+                status.innerText = `Welcome back, ${u}! Session successfully created.`;
+            } else {
+                status.className = "error";
+                status.innerText = "Invalid username or password. Please try again.";
+            }
+        }
+    </script>
+</body>
+</html>

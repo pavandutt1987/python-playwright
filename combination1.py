@@ -99,10 +99,7 @@
 from itertools import groupby
 from itertools import combinations_with_replacement
 
-s= "1222311"
 
-for key , group in groupby(s):
-     print((len(list(group)), int(key)), end=' ')
 
 
 # s,k = input().split()
