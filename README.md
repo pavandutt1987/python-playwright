@@ -12,6 +12,7 @@ Double-click `setup.bat` or run:
 pip install -r requirements.txt
 npm install
 python -m playwright install chromium
+npx playwright install chromium
 ```
 
 ### Step 2: 1-Click Launch
@@ -27,7 +28,7 @@ This automatically launches the studio at **http://localhost:8000**.
 
 1. **Multi-Language Runner**:
    - 🐍 **Python**: Powered by `async_playwright` and native async event loop.
-   - 🔷 **TypeScript**: Powered by `tsx` on the fly (zero manual compilation required).
+   - 🔷 **TypeScript**: Powered by `tsx` for scripts and Playwright Test for files using `test()` / `expect()`.
    - 🟨 **JavaScript**: Powered by native Node.js.
 
 2. **Full VS Code Dark Monaco Editor**:

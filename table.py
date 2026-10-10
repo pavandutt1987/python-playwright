@@ -3,7 +3,6 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=False)
     page = browser.new_page()
     page.goto("https://testautomationpractice.blogspot.com/p/playwrightpractice.html")
-
     links  = page.locator("//ul[@id='pagination']//li")
     print(links.count())
     for i in range(links.count()):

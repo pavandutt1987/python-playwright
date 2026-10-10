@@ -24,8 +24,11 @@ python -m pip install -r requirements.txt
 # 2. Install Node.js & TypeScript dependencies
 npm install
 
-# 3. Download the Playwright Chromium browser binary
+# 3. Download the Python Playwright Chromium browser binary
 python -m playwright install chromium
+
+# 4. Download the Node.js Playwright Chromium browser binary
+npx playwright install chromium
 ```
 
 ---

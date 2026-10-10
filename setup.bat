@@ -22,10 +22,17 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [3/3] Installing Playwright Chromium Browser...
+echo [3/4] Installing Python Playwright Chromium Browser...
 python -m playwright install chromium
 if %errorlevel% neq 0 (
     echo [WARNING] Playwright browser install reported an issue, continuing...
+)
+
+echo.
+echo [4/4] Installing Node.js Playwright Chromium Browser...
+call npx playwright install chromium
+if %errorlevel% neq 0 (
+    echo [WARNING] Node.js Playwright browser install reported an issue, continuing...
 )
 
 echo.

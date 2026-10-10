@@ -39,9 +39,15 @@ if ! npm install; then
 fi
 
 echo
-echo "[3/3] Installing Playwright Chromium Browser..."
+echo "[3/4] Installing Python Playwright Chromium Browser..."
 if ! "$PYTHON_CMD" -m playwright install chromium; then
     echo "[WARNING] Playwright browser install reported an issue, continuing..."
+fi
+
+echo
+echo "[4/4] Installing Node.js Playwright Chromium Browser..."
+if ! npx playwright install chromium; then
+    echo "[WARNING] Node.js Playwright browser install reported an issue, continuing..."
 fi
 
 echo

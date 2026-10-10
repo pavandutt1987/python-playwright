@@ -1,15 +1,81 @@
 import sqlite3
-import json
 import os
+import tempfile
+from contextlib import closing, contextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "history.db")
+APP_DB_FILE = os.path.join(os.path.dirname(__file__), "history.db")
 
+
+def _user_db_file() -> str:
+    """Return a persistent, user-writable location for application data."""
+    data_dir = os.environ.get("LOCALAPPDATA")
+    if not data_dir:
+        data_dir = os.path.join(os.path.expanduser("~"), ".local", "share")
+    return os.path.join(data_dir, "PlaywrightPracticeStudio", "history.db")
+
+
+def _can_write_path(path: str) -> bool:
+    """SQLite needs write access to both its file and journal directory."""
+    parent = os.path.dirname(os.path.abspath(path))
+    try:
+        os.makedirs(parent, exist_ok=True)
+        if os.path.exists(path):
+            # Opening in append mode detects Windows' ReadOnly attribute.
+            with open(path, "ab"):
+                pass
+        with tempfile.TemporaryFile(dir=parent):
+            pass
+        return True
+    except OSError:
+        return False
+
+
+def _select_db_file() -> str:
+    configured_path = os.environ.get("PLAYWRIGHT_STUDIO_DB")
+    if configured_path:
+        configured_path = os.path.abspath(os.path.expanduser(os.path.expandvars(configured_path)))
+        os.makedirs(os.path.dirname(configured_path), exist_ok=True)
+        return configured_path
+
+    if _can_write_path(APP_DB_FILE):
+        return APP_DB_FILE
+
+    fallback_path = _user_db_file()
+    fallback_parent = os.path.dirname(fallback_path)
+    os.makedirs(fallback_parent, exist_ok=True)
+
+    # SQLite backup preserves committed data (including WAL contents), without
+    # copying ReadOnly attributes. Publish only a complete backup.
+    if not os.path.exists(fallback_path) and os.path.exists(APP_DB_FILE):
+        fd, backup_path = tempfile.mkstemp(suffix=".db", dir=fallback_parent)
+        os.close(fd)
+        try:
+            source_uri = Path(APP_DB_FILE).resolve().as_uri() + "?mode=ro"
+            with closing(sqlite3.connect(source_uri, uri=True)) as source:
+                with closing(sqlite3.connect(backup_path)) as destination:
+                    source.backup(destination)
+            os.replace(backup_path, fallback_path)
+        finally:
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+
+    return fallback_path
+
+
+DB_FILE = _select_db_file()
+
+@contextmanager
 def get_db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 def init_db():
     with get_db() as conn:

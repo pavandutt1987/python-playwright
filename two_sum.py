@@ -25,7 +25,7 @@ def two_sum(arr, target):
         for j in range (i+1,len(arr)):
             if arr[i] + arr[j] == target:
                 seen.append((arr[i], arr[j]))
-                indices.append((i, j))
+                indices.append((i, j)
     print("Pairs of numbers that add up to the target:", seen)
     print("indices of numbers that add up to the target:", indices)
     

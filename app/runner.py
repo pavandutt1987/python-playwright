@@ -2,11 +2,12 @@ import asyncio
 import os
 import sys
 import time
-import uuid
 import subprocess
 import shutil
 import tempfile
-from typing import Dict, Optional, Tuple, AsyncGenerator, Any
+import json
+import re
+from typing import Dict, Tuple, AsyncGenerator, Any
 
 # Directory to hold temporary execution files (outside workspace to avoid watcher reloads)
 WORKSPACE_DIR = os.path.join(tempfile.gettempdir(), "playwright_practice_studio_runs")
@@ -18,18 +19,17 @@ def get_project_root() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_node_bin_path() -> Tuple[str, str]:
-    """Finds node and tsx binaries on the local Windows system."""
+    """Use Node directly to avoid shell quoting differences on Windows."""
     project_root = get_project_root()
-    local_tsx_cmd = os.path.join(project_root, "node_modules", ".bin", "tsx.cmd")
-    local_tsx = os.path.join(project_root, "node_modules", ".bin", "tsx")
+    return "node", os.path.join(project_root, "node_modules", "tsx", "dist", "cli.mjs")
 
-    tsx_cmd = "npx tsx"
-    if os.path.exists(local_tsx_cmd):
-        tsx_cmd = f'"{local_tsx_cmd}"'
-    elif os.path.exists(local_tsx):
-        tsx_cmd = f'"{local_tsx}"'
 
-    return "node", tsx_cmd
+def is_playwright_test(code: str) -> bool:
+    """Returns whether the submitted code uses the Playwright Test API."""
+    return bool(re.search(
+        r"(?:from\s*|require\s*\(\s*)['\"](?:@playwright/test|playwright/test)['\"]",
+        code,
+    ))
 
 async def execute_code_stream(
     execution_id: str,
@@ -46,11 +46,20 @@ async def execute_code_stream(
     start_time = time.time()
     project_root = get_project_root()
 
-    ext = ".py" if lang == "python" else (".ts" if lang in ["typescript", "ts"] else ".js")
+    uses_test_runner = lang in ["typescript", "ts", "javascript", "js"] and is_playwright_test(code)
+    if lang == "python":
+        ext = ".py"
+    elif uses_test_runner:
+        ext = ".spec.ts" if lang in ["typescript", "ts"] else ".spec.js"
+    else:
+        ext = ".ts" if lang in ["typescript", "ts"] else ".js"
     file_name = f"run_{execution_id}{ext}"
-    file_path = os.path.join(WORKSPACE_DIR, file_name)
+    run_dir = None
 
     try:
+        # Isolate discovery and artifacts so simultaneous runs cannot interfere.
+        run_dir = tempfile.mkdtemp(prefix=f"run_{execution_id}_", dir=WORKSPACE_DIR)
+        file_path = os.path.join(run_dir, file_name)
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(code)
 
@@ -65,14 +74,27 @@ async def execute_code_stream(
         if lang == "python":
             python_exe = sys.executable
             cmd = [python_exe, file_path]
-            is_shell = False
+        elif uses_test_runner:
+            # Playwright Test supplies fixtures and transforms TypeScript itself.
+            config_path = os.path.join(run_dir, "playwright.config.cjs")
+            with open(config_path, "w", encoding="utf-8") as config_file:
+                config_file.write("module.exports = " + json.dumps({
+                    "testDir": run_dir,
+                    "testMatch": file_name,
+                    "outputDir": os.path.join(run_dir, "test-results"),
+                    "workers": 1,
+                    "reporter": "list",
+                    "globalTimeout": timeout_sec * 1000,
+                }) + ";\n")
+            playwright_cli = os.path.join(project_root, "node_modules", "@playwright", "test", "cli.js")
+            cmd = ["node", playwright_cli, "test", "--config", config_path]
+            if headed:
+                cmd.append("--headed")
         elif lang in ["typescript", "ts"]:
-            _, tsx_path = get_node_bin_path()
-            cmd = f'{tsx_path} "{file_path}"'
-            is_shell = True
+            node, tsx_path = get_node_bin_path()
+            cmd = [node, tsx_path, file_path]
         else: # javascript
             cmd = ["node", file_path]
-            is_shell = False
 
         yield {
             "type": "log",
@@ -81,22 +103,13 @@ async def execute_code_stream(
         }
 
         # Spawn child process
-        if is_shell:
-            process = await asyncio.create_subprocess_shell(
-                cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-                cwd=project_root
-            )
-        else:
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-                cwd=project_root
-            )
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+            cwd=project_root
+        )
 
         ACTIVE_PROCESSES[execution_id] = process
         accumulated_output = []
@@ -166,11 +179,8 @@ async def execute_code_stream(
         }
     finally:
         ACTIVE_PROCESSES.pop(execution_id, None)
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception:
-                pass
+        if run_dir:
+            shutil.rmtree(run_dir, ignore_errors=True)
 
 async def stop_execution(execution_id: str) -> bool:
     """Terminates an active child process."""

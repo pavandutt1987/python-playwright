@@ -4,6 +4,8 @@ import uuid
 import json
 import asyncio
 import subprocess
+import sqlite3
+import logging
 from typing import Optional, List, Dict, Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
@@ -127,26 +129,38 @@ async def websocket_run_code(websocket: WebSocket):
         full_output = []
         final_status = "failed"
         final_duration = 0
+        final_result = None
 
         async for item in runner.execute_code_stream(execution_id, language, code, headed=headed):
-            await websocket.send_json(item)
             if item.get("type") in ["log", "error"]:
+                await websocket.send_json(item)
                 full_output.append(item.get("text", ""))
             elif item.get("type") == "done":
+                final_result = item
                 final_status = item.get("status", "failed")
                 final_duration = item.get("duration_ms", 0)
                 if "full_output" in item:
                     full_output = [item["full_output"]]
 
-        # Save run to SQLite database
-        db.record_run(
-            language=language,
-            code=code,
-            headed=headed,
-            status=final_status,
-            output="".join(full_output),
-            duration_ms=final_duration
-        )
+        # Save before notifying the UI to refresh history. A storage failure must
+        # not replace the actual test result with a second, failed completion.
+        try:
+            db.record_run(
+                language=language,
+                code=code,
+                headed=headed,
+                status=final_status,
+                output="".join(full_output),
+                duration_ms=final_duration
+            )
+        except sqlite3.Error as e:
+            logging.getLogger(__name__).warning("Could not save run history", exc_info=True)
+            await websocket.send_json({
+                "type": "log",
+                "text": f"⚠️ Could not save run history to {db.DB_FILE}: {e}\n"
+            })
+        if final_result is not None:
+            await websocket.send_json(final_result)
 
     except WebSocketDisconnect:
         await runner.stop_execution(execution_id)
