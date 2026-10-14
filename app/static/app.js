@@ -36,6 +36,7 @@ require(['vs/editor/editor.main'], function () {
 
 // App Initialization
 async function initApp() {
+    document.getElementById('serverOrigin').textContent = window.location.origin;
     setupEventListeners();
     await checkEnvironmentStatus();
     await loadTemplates();
@@ -235,6 +236,7 @@ async function loadTemplateCode(templateId, language) {
 // --- Code Execution & Real-Time Output ---
 function runCode() {
     if (!editor) return;
+    if (activeWs) return;
     const code = editor.getValue().trim();
     if (!code) {
         alert('Please enter some code to execute.');
@@ -267,17 +269,19 @@ function runCode() {
     // Open WebSocket connection for streaming
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/run`;
-    activeWs = new WebSocket(wsUrl);
+    const ws = new WebSocket(wsUrl);
+    activeWs = ws;
+    let completed = false;
 
-    activeWs.onopen = () => {
-        activeWs.send(JSON.stringify({
+    ws.onopen = () => {
+        ws.send(JSON.stringify({
             language: language,
             code: code,
             headed: headed
         }));
     };
 
-    activeWs.onmessage = (event) => {
+    ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         if (msg.execution_id) {
             currentExecutionId = msg.execution_id;
@@ -290,18 +294,24 @@ function runCode() {
             terminal.appendChild(line);
             terminal.scrollTop = terminal.scrollHeight;
         } else if (msg.type === 'done') {
+            completed = true;
             handleExecutionDone(msg.status, msg.duration_ms);
+            ws.close();
         }
     };
 
-    activeWs.onerror = (err) => {
+    ws.onerror = (err) => {
         console.error('WebSocket error:', err);
         appendTerminalLine('❌ Connection to runner error', true);
         handleExecutionDone('failed', 0);
     };
 
-    activeWs.onclose = () => {
-        activeWs = null;
+    ws.onclose = () => {
+        if (activeWs === ws) activeWs = null;
+        if (!completed) {
+            appendTerminalLine('Runner connection closed before completion.', true);
+            handleExecutionDone('failed', 0);
+        }
     };
 }
 
@@ -415,7 +425,7 @@ function renderSnippets(snippets) {
         const card = document.createElement('div');
         card.className = 'item-card';
 
-        const tagsHtml = s.tags ? s.tags.split(',').map(t => `<span class="item-tag">${t.trim()}</span>`).join(' ') : '';
+        const tagsHtml = s.tags ? s.tags.split(',').map(t => `<span class="item-tag">${escapeHtml(t.trim())}</span>`).join(' ') : '';
 
         card.innerHTML = `
             <div class="item-card-header">
@@ -427,7 +437,7 @@ function renderSnippets(snippets) {
             </div>
             <div>${tagsHtml}</div>
             <div class="item-meta">
-                <span>${s.language.toUpperCase()}</span>
+                <span>${escapeHtml(s.language.toUpperCase())}</span>
                 <span>${new Date(s.updated_at).toLocaleDateString()}</span>
             </div>
         `;
@@ -515,6 +525,11 @@ async function checkEnvironmentStatus() {
     try {
         const res = await fetch('/api/status');
         const status = await res.json();
+        if (status.remote_desktop) {
+            document.getElementById('remoteDesktopPanel').hidden = false;
+            document.getElementById('remoteDesktopFrame').src = status.desktop_url;
+            document.getElementById('remoteDesktopLink').href = status.desktop_url;
+        }
 
         const py = document.getElementById('pythonStatus');
         const node = document.getElementById('nodeStatus');

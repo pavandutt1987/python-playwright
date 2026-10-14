@@ -1,0 +1,42 @@
+services:
+  studio:
+    build: .
+    restart: unless-stopped
+    init: true
+    shm_size: 1gb
+    mem_limit: 3g
+    cpus: 2
+    pids_limit: 512
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      STUDIO_REMOTE_DESKTOP: "1"
+      STUDIO_MAX_RUNS: "1"
+      STUDIO_TIMEOUT_SECONDS: ${STUDIO_TIMEOUT_SECONDS:-120}
+      STUDIO_PUBLIC_ORIGIN: https://${STUDIO_DOMAIN:?Set STUDIO_DOMAIN in .env}
+    volumes:
+      - studio_data:/data
+    # Backend and desktop ports intentionally stay on the Docker network.
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      studio:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      STUDIO_DOMAIN: ${STUDIO_DOMAIN:?Set STUDIO_DOMAIN in .env}
+      STUDIO_USER: ${STUDIO_USER:?Set STUDIO_USER in .env}
+      STUDIO_PASSWORD_HASH: ${STUDIO_PASSWORD_HASH:?Set STUDIO_PASSWORD_HASH in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  studio_data:
+  caddy_data:
+  caddy_config:

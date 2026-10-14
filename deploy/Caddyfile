@@ -1,0 +1,28 @@
+{$STUDIO_DOMAIN} {
+  @desktopSocket {
+    path /desktop/*
+    header Upgrade websocket
+  }
+  @wrongOrigin not header Origin https://{:80}
+  route {
+    basic_auth {
+        {$STUDIO_USER} {$STUDIO_PASSWORD_HASH}
+    }
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy same-origin
+    }
+    handle @desktopSocket {
+        # Prevent another website from opening the shared remote desktop.
+        respond @wrongOrigin "Forbidden" 403
+        reverse_proxy studio:6080
+    }
+    handle_path /desktop/* {
+        reverse_proxy studio:6080
+    }
+    handle {
+        reverse_proxy studio:8000
+    }
+  }
+}

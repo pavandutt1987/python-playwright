@@ -187,6 +187,14 @@
 
             <!-- Right Pane: Terminal Output -->
             <div class="terminal-pane">
+                <section id="remoteDesktopPanel" class="remote-desktop" hidden>
+                    <div class="pane-header">
+                        <span>Live Browser</span>
+                        <a id="remoteDesktopLink" target="_blank" rel="noopener">Open desktop in a new tab</a>
+                    </div>
+                    <p class="desktop-hint">Shared desktop. Headed browsers appear here while your script is running.</p>
+                    <iframe id="remoteDesktopFrame" title="Live cloud browser desktop" allow="fullscreen"></iframe>
+                </section>
                 <div class="pane-header">
                     <div class="pane-title">
                         <span class="terminal-icon">📟</span>
@@ -239,7 +247,7 @@
     <!-- Status Bar / Footer -->
     <footer class="status-bar">
         <div class="status-left">
-            <span class="status-item"><span class="status-dot green"></span> Server: <strong>http://localhost:8000</strong></span>
+            <span class="status-item"><span class="status-dot green"></span> Server: <strong id="serverOrigin"></strong></span>
             <span class="status-item" id="pythonStatus"><span class="status-dot green"></span> Python 3.14</span>
             <span class="status-item" id="nodeStatus"><span class="status-dot green"></span> Node & TSX</span>
             <span class="status-item" id="browserStatus"><span class="status-dot green"></span> Chromium Ready</span>

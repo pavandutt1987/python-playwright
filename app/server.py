@@ -11,7 +11,6 @@ from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from . import database as db
@@ -20,14 +19,16 @@ from . import runner
 
 app = FastAPI(title="Playwright Practice Studio API")
 
-# Enable CORS for local cross-origin development if needed
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# The UI and desktop are served from the same origin by the cloud proxy.
+PUBLIC_ORIGIN = os.environ.get("STUDIO_PUBLIC_ORIGIN", "").rstrip("/")
+
+
+@app.middleware("http")
+async def check_write_origin(request, call_next):
+    if PUBLIC_ORIGIN and request.method not in {"GET", "HEAD", "OPTIONS"}:
+        if request.headers.get("origin") != PUBLIC_ORIGIN:
+            return JSONResponse({"detail": "Origin not allowed"}, status_code=403)
+    return await call_next(request)
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 PLAYGROUND_DIR = os.path.join(STATIC_DIR, "playground")
@@ -61,6 +62,11 @@ async def get_index():
 
 # --- Status / Health Check ---
 
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/status")
 async def get_status():
     # 1. Check Python Playwright
@@ -81,17 +87,27 @@ async def get_status():
         pass
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    tsx_cmd = os.path.join(project_root, "node_modules", ".bin", "tsx.cmd")
+    tsx_cmd = os.path.join(project_root, "node_modules", "tsx", "dist", "cli.mjs")
     tsx_installed = os.path.exists(tsx_cmd) or shutil_which("tsx")
 
     # 3. Check Chromium browser
-    chromium_installed = True # default true if playwright installed
+    chromium_installed = False
+    try:
+        from playwright.async_api import async_playwright
+        async with async_playwright() as pw:
+            chromium_installed = os.path.isfile(pw.chromium.executable_path)
+    except Exception:
+        pass
 
     return {
         "python_playwright": python_playwright,
         "node": node_installed,
         "tsx": tsx_installed,
-        "chromium": chromium_installed
+        "chromium": chromium_installed,
+        "remote_desktop": os.environ.get("STUDIO_REMOTE_DESKTOP") == "1",
+        "desktop_url": "/desktop/vnc.html?autoconnect=true&resize=scale&path=desktop/websockify",
+        "max_runs": runner.MAX_RUNS,
+        "timeout_seconds": runner.DEFAULT_TIMEOUT,
     }
 
 def shutil_which(cmd: str) -> bool:
@@ -113,34 +129,57 @@ async def get_template(template_id: str, lang: str = "python"):
 
 @app.websocket("/ws/run")
 async def websocket_run_code(websocket: WebSocket):
+    if PUBLIC_ORIGIN and websocket.headers.get("origin") != PUBLIC_ORIGIN:
+        await websocket.close(code=1008)
+        return
     await websocket.accept()
-    execution_id = str(uuid.uuid4())[:8]
+    execution_id = uuid.uuid4().hex
+    disconnect_task = None
+    execution_task = None
+
+    async def watch_disconnect():
+        while True:
+            message = await websocket.receive()
+            if message["type"] == "websocket.disconnect":
+                return
+
+    async def stream_execution(language, code, headed):
+        result = None
+        async for item in runner.execute_code_stream(execution_id, language, code, headed=headed):
+            if item.get("type") == "done":
+                result = item
+            else:
+                await websocket.send_json(item)
+        return result
 
     try:
-        data = await websocket.receive_text()
+        data = await asyncio.wait_for(websocket.receive_text(), timeout=15)
         payload = json.loads(data)
+        if not isinstance(payload, dict):
+            raise ValueError("Expected a code execution object")
 
         language = payload.get("language", "python")
         code = payload.get("code", "")
-        headed = bool(payload.get("headed", False))
+        headed = payload.get("headed", False)
+        if language not in {"python", "javascript", "typescript", "js", "ts"}:
+            raise ValueError("Unsupported language")
+        if not isinstance(code, str) or not code.strip() or len(code.encode("utf-8")) > 200_000:
+            raise ValueError("Code must be nonempty and at most 200 KB")
+        if not isinstance(headed, bool):
+            raise ValueError("headed must be a boolean")
 
         await websocket.send_json({"execution_id": execution_id})
 
-        full_output = []
-        final_status = "failed"
-        final_duration = 0
-        final_result = None
-
-        async for item in runner.execute_code_stream(execution_id, language, code, headed=headed):
-            if item.get("type") in ["log", "error"]:
-                await websocket.send_json(item)
-                full_output.append(item.get("text", ""))
-            elif item.get("type") == "done":
-                final_result = item
-                final_status = item.get("status", "failed")
-                final_duration = item.get("duration_ms", 0)
-                if "full_output" in item:
-                    full_output = [item["full_output"]]
+        disconnect_task = asyncio.create_task(watch_disconnect())
+        execution_task = asyncio.create_task(stream_execution(language, code, headed))
+        done, _ = await asyncio.wait(
+            {disconnect_task, execution_task}, return_when=asyncio.FIRST_COMPLETED
+        )
+        if disconnect_task in done:
+            return
+        final_result = await execution_task
+        if final_result is None:
+            return
 
         # Save before notifying the UI to refresh history. A storage failure must
         # not replace the actual test result with a second, failed completion.
@@ -149,9 +188,9 @@ async def websocket_run_code(websocket: WebSocket):
                 language=language,
                 code=code,
                 headed=headed,
-                status=final_status,
-                output="".join(full_output),
-                duration_ms=final_duration
+                status=final_result["status"],
+                output=final_result.get("full_output", ""),
+                duration_ms=final_result["duration_ms"]
             )
         except sqlite3.Error as e:
             logging.getLogger(__name__).warning("Could not save run history", exc_info=True)
@@ -176,6 +215,19 @@ async def websocket_run_code(websocket: WebSocket):
             "status": "failed",
             "duration_ms": 0
         })
+    finally:
+        for task in (execution_task, disconnect_task):
+            if task is not None and not task.done():
+                task.cancel()
+        await asyncio.gather(
+            *(task for task in (execution_task, disconnect_task) if task is not None),
+            return_exceptions=True,
+        )
+        await runner.stop_execution(execution_id)
+        try:
+            await websocket.close()
+        except (RuntimeError, WebSocketDisconnect):
+            pass
 
 @app.post("/api/stop")
 async def stop_code_execution(req: StopRequest):

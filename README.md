@@ -2,6 +2,11 @@
 
 A complete local browser-based practice & automation platform for **Python**, **TypeScript**, and **JavaScript** Playwright test engineers.
 
+For a hosted version with an interactive headed browser, see
+[Cloud hosting with a live browser](CLOUD_HOSTING.md). It includes Docker Compose,
+HTTPS/password authentication, persistent history, and an embedded remote desktop
+for one shared trusted-user session.
+
 ---
 
 ## 🚀 Quick Start (Windows)

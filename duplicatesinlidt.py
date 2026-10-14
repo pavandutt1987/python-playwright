@@ -10,8 +10,8 @@ print(seen)
 import copy
 
 a=[2,3,4]
-b= copy.copy(a)
-#b= copy.deepcopy(a)
+b= copy.copy(a) # Shallow copy
+#b= copy.deepcopy(a) # Deep copy
 print(b)
 b.append(5)
 b[1].append(6)

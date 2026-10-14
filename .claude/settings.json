@@ -1,0 +1,362 @@
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "NO_PROXY": "127.0.0.1,localhost,::1",
+    "no_proxy": "127.0.0.1,localhost,::1",
+    "CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT": "1",
+    "ANTHROPIC_AUTH_TOKEN": "sk-b4008776c1b7cf95-630341-295df815",
+    "CODEXL_CLAUDE_CODE_MODEL": "ollamacloud/gpt-oss:20b",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "ollamacloud/gemma4:31b",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "ollamacloud/nemotron-3-super",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "ollamacloud/gemma4:31b",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "ollamacloud/gemma4:31b"
+  },
+  "model": "apodex/apodex-1.1-mini:free",
+  "modelPicker": {
+    "options": [
+      {
+        "model": "anthropic/claude-sonnet-4.5",
+        "label": "anthropic/claude-sonnet-4.5"
+      },
+      {
+        "model": "anthropic/claude-opus-4.6",
+        "label": "anthropic/claude-opus-4.6"
+      },
+      {
+        "model": "google/gemini-2.5-pro",
+        "label": "google/gemini-2.5-pro"
+      },
+      {
+        "model": "openai/gpt-5",
+        "label": "openai/gpt-5"
+      },
+      {
+        "model": "deepseek/deepseek-chat",
+        "label": "deepseek/deepseek-chat"
+      },
+      {
+        "model": "z-ai/glm-5.3-flash",
+        "label": "z-ai/glm-5.3-flash"
+      },
+      {
+        "model": "anthropic/claude-sonnet-5.5",
+        "label": "anthropic/claude-sonnet-5.5"
+      },
+      {
+        "model": "apodex/apodex-1.1-mini:free",
+        "label": "apodex/apodex-1.1-mini:free"
+      },
+      {
+        "model": "inclusionai/ling-3.0-flash-sante:free",
+        "label": "inclusionai/ling-3.0-flash-sante:free"
+      },
+      {
+        "model": "qwen/qwen3.8-27b:free",
+        "label": "qwen/qwen3.8-27b:free"
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "label": "dots-studio/dots-3-note-preview:free"
+      },
+      {
+        "model": "liquid/lfm-2.5-2.6b:free",
+        "label": "liquid/lfm-2.5-2.6b:free"
+      },
+      {
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "label": "nvidia/nemotron-3.5-lightning:free"
+      },
+      {
+        "model": "thinkingmachines/inkling-small:free",
+        "label": "thinkingmachines/inkling-small:free"
+      },
+      {
+        "model": "poolside/laguna-s-2.1:free",
+        "label": "poolside/laguna-s-2.1:free"
+      },
+      {
+        "model": "thinkingmachines/inkling:free",
+        "label": "thinkingmachines/inkling:free"
+      },
+      {
+        "model": "poolside/laguna-xs-2.1:free",
+        "label": "poolside/laguna-xs-2.1:free"
+      },
+      {
+        "model": "cohere/north-mini-code:free",
+        "label": "cohere/north-mini-code:free"
+      },
+      {
+        "model": "nvidia/nemotron-3.5-content-safety:free",
+        "label": "nvidia/nemotron-3.5-content-safety:free"
+      },
+      {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "label": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "label": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+      },
+      {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "label": "google/gemma-4-26b-a4b-it:free"
+      },
+      {
+        "model": "z-ai/glm-5.3-prime",
+        "label": "z-ai/glm-5.3-prime"
+      },
+      {
+        "model": "z-ai/glm-5.3-flashx",
+        "label": "z-ai/glm-5.3-flashx"
+      },
+      {
+        "model": "~z-ai/glm-flash-latest",
+        "label": "~z-ai/glm-flash-latest"
+      },
+      {
+        "model": "z-ai/glm-5.3-flash:batch",
+        "label": "z-ai/glm-5.3-flash:batch"
+      },
+      {
+        "model": "~z-ai/glm-latest",
+        "label": "~z-ai/glm-latest"
+      },
+      {
+        "model": "z-ai/glm-5.3",
+        "label": "z-ai/glm-5.3"
+      },
+      {
+        "model": "z-ai/glm-5.3:batch",
+        "label": "z-ai/glm-5.3:batch"
+      },
+      {
+        "model": "z-ai/glm-5.2",
+        "label": "z-ai/glm-5.2"
+      },
+      {
+        "model": "z-ai/glm-5.1",
+        "label": "z-ai/glm-5.1"
+      },
+      {
+        "model": "z-ai/glm-5v-turbo",
+        "label": "z-ai/glm-5v-turbo"
+      },
+      {
+        "model": "z-ai/glm-5-turbo",
+        "label": "z-ai/glm-5-turbo"
+      },
+      {
+        "model": "z-ai/glm-5",
+        "label": "z-ai/glm-5"
+      },
+      {
+        "model": "z-ai/glm-4.7-flash",
+        "label": "z-ai/glm-4.7-flash"
+      },
+      {
+        "model": "z-ai/glm-4.7",
+        "label": "z-ai/glm-4.7"
+      },
+      {
+        "model": "z-ai/glm-4.6v",
+        "label": "z-ai/glm-4.6v"
+      },
+      {
+        "model": "z-ai/glm-4.6",
+        "label": "z-ai/glm-4.6"
+      },
+      {
+        "model": "openai/gpt-6.1-sol",
+        "label": "openai/gpt-6.1-sol"
+      },
+      {
+        "model": "openai/gpt-6.1-sol-pro",
+        "label": "openai/gpt-6.1-sol-pro"
+      },
+      {
+        "model": "deepseek/deepseek-v4-pro",
+        "label": "deepseek/deepseek-v4-pro"
+      },
+      {
+        "model": "openai/gpt-6-luna-pro",
+        "label": "openai/gpt-6-luna-pro"
+      },
+      {
+        "model": "openai/gpt-6-luna-pro:batch",
+        "label": "openai/gpt-6-luna-pro:batch"
+      },
+      {
+        "model": "deepseek/deepseek-v4.1-flash",
+        "label": "deepseek/deepseek-v4.1-flash"
+      },
+      {
+        "model": "deepseek/deepseek-v4.1-flash:batch",
+        "label": "deepseek/deepseek-v4.1-flash:batch"
+      },
+      {
+        "model": "google/gemma-4-31b-it:free",
+        "label": "google/gemma-4-31b-it:free"
+      },
+      {
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "label": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      {
+        "model": "openrouter/free",
+        "label": "openrouter/free"
+      },
+      {
+        "model": "z-ai/glm-4.5v",
+        "label": "z-ai/glm-4.5v"
+      },
+      {
+        "model": "z-ai/glm-4.5",
+        "label": "z-ai/glm-4.5"
+      },
+      {
+        "model": "openai/gpt-6-luna",
+        "label": "openai/gpt-6-luna"
+      },
+      {
+        "model": "openai/gpt-6-luna:batch",
+        "label": "openai/gpt-6-luna:batch"
+      },
+      {
+        "model": "openai/gpt-6-sol-pro",
+        "label": "openai/gpt-6-sol-pro"
+      },
+      {
+        "model": "openai/gpt-6-sol-pro:batch",
+        "label": "openai/gpt-6-sol-pro:batch"
+      },
+      {
+        "model": "openai/gpt-6-sol",
+        "label": "openai/gpt-6-sol"
+      },
+      {
+        "model": "openai/gpt-6-sol:batch",
+        "label": "openai/gpt-6-sol:batch"
+      },
+      {
+        "model": "~openai/gpt-astra-latest",
+        "label": "~openai/gpt-astra-latest"
+      },
+      {
+        "model": "~openai/gpt-sol-latest",
+        "label": "~openai/gpt-sol-latest"
+      },
+      {
+        "model": "~openai/gpt-terra-latest",
+        "label": "~openai/gpt-terra-latest"
+      },
+      {
+        "model": "~openai/gpt-luna-latest",
+        "label": "~openai/gpt-luna-latest"
+      },
+      {
+        "model": "openai/gpt-6-astra",
+        "label": "openai/gpt-6-astra"
+      },
+      {
+        "model": "openai/gpt-6-astra-pro:batch",
+        "label": "openai/gpt-6-astra-pro:batch"
+      },
+      {
+        "model": "openai/gpt-6-astra-pro",
+        "label": "openai/gpt-6-astra-pro"
+      },
+      {
+        "model": "openai/gpt-6-astra:batch",
+        "label": "openai/gpt-6-astra:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-luna-pro",
+        "label": "openai/gpt-5.6-luna-pro"
+      },
+      {
+        "model": "openai/gpt-5.6-luna-pro:batch",
+        "label": "openai/gpt-5.6-luna-pro:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-luna",
+        "label": "openai/gpt-5.6-luna"
+      },
+      {
+        "model": "openai/gpt-5.6-luna:batch",
+        "label": "openai/gpt-5.6-luna:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-terra-pro",
+        "label": "openai/gpt-5.6-terra-pro"
+      },
+      {
+        "model": "openai/gpt-5.6-terra-pro:batch",
+        "label": "openai/gpt-5.6-terra-pro:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-terra",
+        "label": "openai/gpt-5.6-terra"
+      },
+      {
+        "model": "openai/gpt-5.6-terra:batch",
+        "label": "openai/gpt-5.6-terra:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-sol-pro",
+        "label": "openai/gpt-5.6-sol-pro"
+      },
+      {
+        "model": "openai/gpt-5.6-sol-pro:batch",
+        "label": "openai/gpt-5.6-sol-pro:batch"
+      },
+      {
+        "model": "openai/gpt-5.6-sol",
+        "label": "openai/gpt-5.6-sol"
+      },
+      {
+        "model": "openai/gpt-5.6-sol:batch",
+        "label": "openai/gpt-5.6-sol:batch"
+      },
+      {
+        "model": "openai/gpt-chat-latest",
+        "label": "openai/gpt-chat-latest"
+      },
+      {
+        "model": "~openai/gpt-mini-latest",
+        "label": "~openai/gpt-mini-latest"
+      },
+      {
+        "model": "openai/gpt-5.5-pro",
+        "label": "openai/gpt-5.5-pro"
+      },
+      {
+        "model": "openai/gpt-5.5-pro:batch",
+        "label": "openai/gpt-5.5-pro:batch"
+      },
+      {
+        "model": "openai/gpt-5.5:batch",
+        "label": "openai/gpt-5.5:batch"
+      },
+      {
+        "model": "openai/gpt-5.5",
+        "label": "openai/gpt-5.5"
+      },
+      {
+        "model": "openai/gpt-5.4-image-2",
+        "label": "openai/gpt-5.4-image-2"
+      },
+      {
+        "model": "openai/gpt-5.4-nano",
+        "label": "openai/gpt-5.4-nano"
+      },
+      {
+        "model": "openai/gpt-5.4-nano:batch",
+        "label": "openai/gpt-5.4-nano:batch"
+      }
+    ],
+    "replaceBuiltInOptions": false
+  },
+  "autoUpdatesChannel": "latest"
+}

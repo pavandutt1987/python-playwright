@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!requirements.txt
+!package.json
+!package-lock.json
+!app/
+!app/**
+!deploy/
+!deploy/**
+app/*.db*
+**/__pycache__/**
+**/*.pyc

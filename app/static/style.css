@@ -713,3 +713,11 @@ body {
 .status-dot.green { background-color: #3fb950; }
 .status-dot.yellow { background-color: #d29922; }
 .status-dot.red { background-color: #ff7b72; }
+
+.remote-desktop[hidden] { display: none; }
+.remote-desktop { display: flex; flex-direction: column; height: 55%; min-height: 240px; border-bottom: 1px solid var(--border-color); }
+.remote-desktop a { color: #38bdf8; font-size: 12px; }
+.desktop-hint { color: var(--text-muted); font-size: 12px; padding: 6px 12px; margin: 0; }
+.remote-desktop iframe { width: 100%; flex: 1; min-height: 0; border: 0; background: #111; }
+.terminal-pane .terminal-output { min-height: 0; }
+.status-pill.timeout, .status-pill.output_limit, .status-pill.busy { color: #f0b44c; }
