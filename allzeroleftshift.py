@@ -19,3 +19,11 @@ for i in range(len(arr)):
         arr.pop(i)
         arr.insert(0,0)
 print(arr)
+
+for i in range(len(arr)):
+    for j in range(len(arr)-1):
+        if  arr[j+1] !=0:
+            continue
+        else:
+            arr[j],arr[j+1] = arr[j+1],arr[j]
+print(arr)
